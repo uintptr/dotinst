@@ -14,6 +14,10 @@ def printkv(k: str, v: object) -> None:
     print(" " * 4 + f"{k:<20} {v}")
 
 
+def is_posix() -> bool:
+    return "win32" != sys.platform
+
+
 def install_links(config: str, src: str, dst: str, verbose: bool) -> None:
 
     plat = sys.platform
@@ -27,8 +31,14 @@ def install_links(config: str, src: str, dst: str, verbose: bool) -> None:
 
         src_path = os.path.join(src, f)
 
+        if False == os.path.exists(src_path):
+            raise FileNotFoundError(src_path)
+
         if plat not in files[f]:
-            if "any" in files[f]:
+
+            if is_posix() and "posix" in files[f]:
+                plat = "posix"
+            elif "any" in files[f]:
                 plat = "any"
             else:
                 continue
@@ -56,16 +66,12 @@ def install_links(config: str, src: str, dst: str, verbose: bool) -> None:
             if False == os.path.exists(dst_dir):
                 os.makedirs(dst_dir)
 
-            if True == os.path.exists(dst_path):
-                if True == os.path.isfile(dst_path):
-                    os.unlink(dst_path)
-                elif True == os.path.islink(dst_path):
-                    os.unlink(dst_path)
-                elif True == os.path.isdir(dst_path):
-                    shutil.rmtree(dst_path)
-                else:
-                    raise ValueError(f"What is this? {dst_path}")
-
+            if True == os.path.isfile(dst_path):
+                os.unlink(dst_path)
+            elif True == os.path.islink(dst_path):
+                os.unlink(dst_path)
+            elif True == os.path.isdir(dst_path):
+                shutil.rmtree(dst_path)
             os.symlink(src_path, dst_path)
 
 
